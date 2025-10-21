@@ -105,7 +105,7 @@ console.log('\n🤖 3. TESTANDO GEMINI API...\n');
 
 try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
     console.log('   🔄 Enviando requisição de teste para Gemini...');
     const result = await model.generateContent('Responda apenas "OK" se você estiver funcionando.');
@@ -196,7 +196,7 @@ IMPORTANTE: Responda APENAS com um JSON válido no seguinte formato:
 
     console.log('\n   🔄 Gerando plano com Gemini...');
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     
     const startTime = Date.now();
     const result = await model.generateContent(prompt);

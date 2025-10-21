@@ -111,7 +111,7 @@ app.post('/api/gerar-plano', async (req, res) => {
     }
 
     // Gerar plano com Gemini AI
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const prompt = criarPrompt(req.body);
     
     console.log('Gerando plano de aula com Gemini AI...');
