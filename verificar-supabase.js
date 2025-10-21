@@ -1,128 +1,127 @@
-import pg from 'pg';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
-const { Client } = pg;
+dotenv.config();
 
 async function verificarSetup() {
-    const connectionString = 'postgresql://postgres.bywxgzdwbnyyepzeptgx:desafiotecnico@aws-1-sa-east-1.pooler.supabase.com:5432/postgres';
-    
-    const client = new Client({
-        connectionString,
-        ssl: { rejectUnauthorized: false }
-    });
+    // Usar variáveis de ambiente para segurança
+    const supabase = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_ANON_KEY
+    );
 
     try {
         console.log('🔍 Verificando setup do Supabase...\n');
-        await client.connect();
+        
+        // Testar conexão básica
+        const { data: testData, error: testError } = await supabase
+            .from('planos_aula')
+            .select('count')
+            .limit(0);
+            
+        if (testError) {
+            console.log('❌ Erro de conexão:', testError.message);
+            return;
+        }
+        
         console.log('✅ Conexão bem-sucedida!\n');
 
-        // 1. Verificar tabelas
+        // Verificar se as tabelas existem
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+async function verificarSetup() {
+    // Usar variáveis de ambiente para segurança
+    const supabase = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_ANON_KEY
+    );
+
+    try {
+        console.log('🔍 Verificando setup do Supabase...\n');
+        
+        // Testar conexão básica
+        const { data: testData, error: testError } = await supabase
+            .from('planos_aula')
+            .select('count')
+            .limit(0);
+            
+        if (testError) {
+            console.log('❌ Erro de conexão:', testError.message);
+            return;
+        }
+        
+        console.log('✅ Conexão bem-sucedida!\n');
+
+        // Verificar se as tabelas existem
         console.log('📊 1. TABELAS:');
-        const tablesResult = await client.query(`
-            SELECT 
-                table_name,
-                (SELECT COUNT(*) FROM information_schema.columns WHERE table_name = t.table_name AND table_schema = 'public') as num_columns
-            FROM information_schema.tables t
-            WHERE table_schema = 'public' 
-            ORDER BY table_name;
-        `);
         
-        tablesResult.rows.forEach(row => {
-            console.log(`   ✓ ${row.table_name} (${row.num_columns} colunas)`);
-        });
-
-        // 2. Verificar colunas da tabela principal
-        console.log('\n📋 2. COLUNAS DA TABELA planos_aula:');
-        const columnsResult = await client.query(`
-            SELECT column_name, data_type, is_nullable
-            FROM information_schema.columns 
-            WHERE table_schema = 'public' AND table_name = 'planos_aula'
-            ORDER BY ordinal_position;
-        `);
+        const tabelas = ['geracoes_historico', 'planos_aula', 'profiles'];
+        let tabelasOk = 0;
         
-        columnsResult.rows.forEach(row => {
-            const nullable = row.is_nullable === 'YES' ? 'NULL' : 'NOT NULL';
-            console.log(`   ✓ ${row.column_name}: ${row.data_type} (${nullable})`);
-        });
-
-        // 3. Verificar RLS
-        console.log('\n🔒 3. ROW LEVEL SECURITY (RLS):');
-        const rlsResult = await client.query(`
-            SELECT tablename, COUNT(*) as num_policies
-            FROM pg_policies 
-            WHERE schemaname = 'public'
-            GROUP BY tablename
-            ORDER BY tablename;
-        `);
-        
-        rlsResult.rows.forEach(row => {
-            console.log(`   ✓ ${row.tablename}: ${row.num_policies} políticas`);
-        });
-
-        // 4. Verificar funções
-        console.log('\n⚙️  4. FUNÇÕES:');
-        const functionsResult = await client.query(`
-            SELECT routine_name
-            FROM information_schema.routines
-            WHERE routine_schema = 'public'
-            ORDER BY routine_name;
-        `);
-        
-        if (functionsResult.rows.length > 0) {
-            functionsResult.rows.forEach(row => {
-                console.log(`   ✓ ${row.routine_name}()`);
-            });
-        } else {
-            console.log('   ⚠️  Nenhuma função personalizada encontrada');
+        for (const tabela of tabelas) {
+            try {
+                const { error } = await supabase.from(tabela).select('count').limit(0);
+                if (error) {
+                    console.log(`   ❌ ${tabela}: ${error.message}`);
+                } else {
+                    console.log(`   ✓ ${tabela} (tabela existe)`);
+                    tabelasOk++;
+                }
+            } catch (err) {
+                console.log(`   ❌ ${tabela}: Erro ao verificar`);
+            }
         }
 
-        // 5. Verificar triggers
-        console.log('\n⚡ 5. TRIGGERS:');
-        const triggersResult = await client.query(`
-            SELECT trigger_name, event_object_table
-            FROM information_schema.triggers
-            WHERE trigger_schema = 'public'
-            ORDER BY event_object_table, trigger_name;
-        `);
-        
-        if (triggersResult.rows.length > 0) {
-            triggersResult.rows.forEach(row => {
-                console.log(`   ✓ ${row.event_object_table}.${row.trigger_name}`);
-            });
-        } else {
-            console.log('   ⚠️  Nenhum trigger encontrado');
-        }
-
-        // 6. Testar insert (rollback)
-        console.log('\n🧪 6. TESTE DE INSERÇÃO (simulado):');
+        // Teste básico de inserção 
+        console.log('\n🧪 2. TESTE DE INSERÇÃO (simulado):');
         try {
-            await client.query('BEGIN');
-            await client.query(`
-                INSERT INTO public.planos_aula (disciplina, ano_escolar, tema, duracao_minutos, plano_gerado)
-                VALUES ('Matemática', '5º Ano', 'Frações', 50, '{"teste": true}'::jsonb)
-                RETURNING id;
-            `);
-            await client.query('ROLLBACK');
-            console.log('   ✅ Inserção de teste OK (rollback executado)');
+            const planoTeste = {
+                disciplina: 'Matemática',
+                ano_escolar: '5º ano EF',
+                tema: 'Teste de Verificação',
+                duracao_minutos: 50,
+                plano_gerado: { teste: true }
+            };
+            
+            const { data, error } = await supabase
+                .from('planos_aula')
+                .insert([planoTeste])
+                .select('id');
+
+            if (error) {
+                console.log(`   ❌ Erro na inserção: ${error.message}`);
+            } else {
+                console.log('   ✅ Inserção de teste OK (limpando...)');
+                
+                // Limpar teste
+                await supabase
+                    .from('planos_aula')
+                    .delete()
+                    .eq('id', data[0].id);
+                    
+                console.log('   ✅ Teste limpo com sucesso');
+            }
         } catch (error) {
-            await client.query('ROLLBACK');
             console.log(`   ❌ Erro no teste: ${error.message}`);
         }
 
         console.log('\n' + '='.repeat(60));
         console.log('✨ VERIFICAÇÃO COMPLETA!');
         console.log('='.repeat(60));
-        console.log('\n📝 Resumo:');
-        console.log(`   • ${tablesResult.rows.length} tabelas criadas`);
-        console.log(`   • ${rlsResult.rows.reduce((sum, row) => sum + parseInt(row.num_policies), 0)} políticas RLS ativas`);
-        console.log(`   • ${functionsResult.rows.length} funções personalizadas`);
-        console.log(`   • ${triggersResult.rows.length} triggers configurados`);
-        console.log('\n🚀 Banco de dados pronto para uso!\n');
+        
+        if (tabelasOk === 3) {
+            console.log('\n🚀 Banco de dados pronto para uso!\n');
+        } else {
+            console.log('\n⚠️  Execute o schema SQL no Supabase Dashboard\n');
+        }
 
     } catch (error) {
         console.error('❌ Erro:', error.message);
+        console.log('\n💡 Verifique suas credenciais no arquivo .env\n');
         process.exit(1);
-    } finally {
-        await client.end();
     }
 }
 

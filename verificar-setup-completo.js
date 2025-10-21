@@ -102,8 +102,7 @@ async function verificarTudo() {
     console.log('   4. Gere seu primeiro plano de aula!\n');
   } else {
     console.log('❌ CONFIGURAÇÃO INCOMPLETA\n');
-    console.log('Execute o SQL no Supabase:');
-    console.log('https://supabase.com/dashboard/project/bywxgzdwbnyyepzeptgx/editor/sql\n');
+    console.log('Execute o SQL no Supabase Dashboard → SQL Editor\n');
   }
   
   console.log('═══════════════════════════════════════════════════════\n');
