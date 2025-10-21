@@ -27,35 +27,6 @@ async function verificarSetup() {
         console.log('✅ Conexão bem-sucedida!\n');
 
         // Verificar se as tabelas existem
-import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-async function verificarSetup() {
-    // Usar variáveis de ambiente para segurança
-    const supabase = createClient(
-        process.env.SUPABASE_URL,
-        process.env.SUPABASE_ANON_KEY
-    );
-
-    try {
-        console.log('🔍 Verificando setup do Supabase...\n');
-        
-        // Testar conexão básica
-        const { data: testData, error: testError } = await supabase
-            .from('planos_aula')
-            .select('count')
-            .limit(0);
-            
-        if (testError) {
-            console.log('❌ Erro de conexão:', testError.message);
-            return;
-        }
-        
-        console.log('✅ Conexão bem-sucedida!\n');
-
-        // Verificar se as tabelas existem
         console.log('📊 1. TABELAS:');
         
         const tabelas = ['geracoes_historico', 'planos_aula', 'profiles'];
