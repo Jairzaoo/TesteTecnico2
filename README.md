@@ -56,6 +56,8 @@ PORT=3000
 No Supabase Dashboard:
 - SQL Editor → Cole conteúdo de `database/schema.sql` → Execute
 
+📖 **[Guia Completo de Integração com Supabase](INTEGRACAO_SUPABASE.md)** ← Passo a passo detalhado
+
 ### 4. Executar
 ```bash
 npm start
